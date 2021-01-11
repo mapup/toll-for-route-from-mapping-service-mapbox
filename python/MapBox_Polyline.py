@@ -1,15 +1,8 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Jan  7 20:50:45 2021
-
-@author: pavelc@mapup.ai
-"""
-
 #Importing modules
 import json
 import requests
 
-'''---------------------------------------------------Fetching Polyline from Mapbox-------------------------------------------------------------'''
+'''Fetching Polyline from Mapbox'''
 
 #API key for Mapbox
 token=''
@@ -36,12 +29,12 @@ else:
 #you will find a key named "geometry" which is essentially the Polyline''' 
 
 #Extracting polyline
-polyline=response["routes"][0]['geometry']
-
-'''-----------------------------------------------------------------------------------------------------------------------------------------------'''
+polyline_from_mapbox=response["routes"][0]['geometry']
 
 
-'''------------------------------------------------------Calling Tollguru API---------------------------------------------------------------------'''
+
+
+'''Calling Tollguru API'''
 
 #API key for Tollguru
 Tolls_Key = ''
@@ -56,8 +49,7 @@ headers = {
           }
 params = {
             'source': "mapbox",
-            'polyline': polyline ,                      #this is polyline that we fetched from the mapping service      
-            #'polyline': 'some_wrong_polyline_' ,      
+            'polyline': polyline_from_mapbox ,               
             'vehicleType': '2AxlesAuto',                #'''TODO - Need to users list of acceptable values for vehicle type'''
             'departure_time' : "2021-01-05T09:46:08Z"   #'''TODO - Specify time formats'''
         }
@@ -72,5 +64,3 @@ if str(response_tollguru).find('message')==-1:
     print(*response_tollguru['summary']['rates'].items(),end="\n\n")
 else:
     raise Exception(response_tollguru['message'])
-
-'''--------------------------------------------------------------------------------------------------------------------------------------------'''
