@@ -23,7 +23,7 @@ require 'HTTParty'
 require 'json'
 
 
-// Token from mapbox
+# Token from mapbox
 TOKEN = ENV['MAPBOX_KEY']
 
 MAPBOX_URL = "https://api.mapbox.com/directions/v5/mapbox/driving/#{SOURCE[:longitude]},#{SOURCE[:latitude]};#{DESTINATION[:longitude]},#{DESTINATION[:latitude]}?geometries=polyline&access_token=#{TOKEN}&overview=full"
