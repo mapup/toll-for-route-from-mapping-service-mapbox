@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v5.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v5.0": {
+      "mapbox_dotnet/1.0.0": {
+        "runtime": {
+          "mapbox_dotnet.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "mapbox_dotnet/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
