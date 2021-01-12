@@ -9,7 +9,7 @@ namespace mapbox
         public static void Main()
         {
             // Create a request for the URL.
-            string api_key="pk.eyJ1Ijoic2FyYW5zaGphaW4yNDciLCJhIjoiY2tqdG5tOGhvMDcweTJxbzU5Y2JnaTRmdiJ9.Q4GOyx_yxGRsnCVu328EZQ";
+            string api_key="";
             string source_longitude="80.131123";
             string source_latitude="28.552413";
             string destination_longitude="77.113091";
@@ -17,7 +17,7 @@ namespace mapbox
             string url="https://api.mapbox.com/directions/v5/mapbox/driving/"+source_longitude+","+source_latitude+";"+destination_longitude+","+destination_latitude+"?geometries=polyline&access_token="+api_key+"&overview=full";
             Console.WriteLine(url);
             WebRequest request = WebRequest.Create(url);
-            //WebRequest request = WebRequest.Create("https://api.mapbox.com/directions/v5/mapbox/driving/-96.7970,32.7767;-74.0060,40.7128?geometries=polyline&access_token=pk.eyJ1Ijoic2FyYW5zaGphaW4yNDciLCJhIjoiY2tqdG5tOGhvMDcweTJxbzU5Y2JnaTRmdiJ9.Q4GOyx_yxGRsnCVu328EZQ&overview=full");
+            //WebRequest request = WebRequest.Create("https://api.mapbox.com/directions/v5/mapbox/driving/-96.7970,32.7767;-74.0060,40.7128?geometries=polyline&access_token=&overview=full");
             // Get the response.
             WebResponse response = request.GetResponse();
             // Display the status.
