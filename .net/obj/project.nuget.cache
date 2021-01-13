@@ -1,8 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "+Q8X2DuiNl72nZZuHP9VVZ1V53xFf5IWIMEwyyGSbPTlUA9EvZumvBoXysLAm/ufrgUBRXyeU5nWlveH7/PINg==",
+  "dgSpecHash": "8Llhv5RajsDcArZMASiwBH18T18nuVbrHb2v0rAvBuaQny+2VtOxwdneyFq6vaIvv14rqUG4YrH/XjIDkzOZQA==",
   "success": true,
   "projectFilePath": "G:\\Shared drives\\a_00_Common\\00_github\\_net\\test\\toll_mapbox\\00_test_toll-mapbox-\\.net\\.net.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\saran\\.nuget\\packages\\restsharp\\106.11.7\\restsharp.106.11.7.nupkg.sha512"
+  ],
   "logs": []
 }
