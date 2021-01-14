@@ -10,7 +10,7 @@
 * If you want you can create an application specific token.
 
 
-To get the route polyline make a GET request on 'https://api.mapbox.com/directions/v5/mapbox/driving/'source_longitude+','+source_latitude+';'+destination_longitude+','+destination_latitude+'?geometries=polyline&access_token='+token+'&overview=full'
+To get the route polyline make a GET request on https://api.mapbox.com/directions/v5/mapbox/driving/{source_longitude},{source_latitude};{destination_longitude},{destination_latitude}?geometries=polyline&access_token={token}&overview=full
 
 Example of GET request : https://api.mapbox.com/directions/v5/mapbox/driving/-96.7970,32.7767;-74.0060,40.7128?geometries=polyline&access_token=jk.evgggiejdjks2ZWxjbWFwdXAiLCJhIjoiY2tQ&overview=full
 
@@ -21,13 +21,15 @@ Example of GET request : https://api.mapbox.com/directions/v5/mapbox/driving/-96
   `{longitude},{latitud}`.
 
 ```python
-
 #Importing modules
 import json
 import requests
+import os
+
+'''Fetching Polyline from Mapbox'''
 
 #API key for Mapbox
-token=''
+token=os.environ.get("MAPBOX_PUBLIC_API_KEY")
 
 #Source and Destination Coordinates
 source_longitude='-96.7970'
@@ -39,19 +41,14 @@ destination_latitude='40.7128'
 url='https://api.mapbox.com/directions/v5/mapbox/driving/{a},{b};{c},{d}?geometries=polyline&access_token={e}&overview=full'.format(a=source_longitude,b=source_latitude,c=destination_longitude,d=destination_latitude,e=token)
 
 #converting the response to json
-response=requests.get(url).json()
+response=requests.get(url,timeout=20).json()
 
 #checking for errors in response 
 if str(response).find('message')==-1:
-    pass
+    #Extracting polyline
+    polyline_from_mapbox=response["routes"][0]['geometry']
 else:
     raise Exception(response['message'])
-
-#The response is a dict where Polyline is inside first element named "routes" , first element is a list , go to 1st element there
-#you will find a key named "geometry" which is essentially the Polyline''' 
-
-#Extracting polyline
-polyline=response["routes"][0]['geometry']
 
 ```
 
@@ -70,11 +67,12 @@ We need to send this route polyline to TollGuru API to receive toll information
 
 This snippet can be added at end of the above code to get rates and other details.
 ```python
+'''Calling Tollguru API'''
 
 #API key for Tollguru
-Tolls_Key = ''
+Tolls_Key = os.environ.get("TOLLGURU_API_KEY")
 
-#Tollguru API url
+#Tollguru querry url
 Tolls_URL = 'https://dev.tollguru.com/v1/calc/route'
 
 #Tollguru resquest parameters
@@ -82,21 +80,22 @@ headers = {
             'Content-type': 'application/json',
             'x-api-key': Tolls_Key
           }
-params = {
+params = {   
+            #Explore https://tollguru.com/developers/docs/ to get best of all the parameter that tollguru has to offer 
             'source': "mapbox",
-            'polyline': polyline ,                      #this is polyline that we fetched from the mapping service      
-            'vehicleType': '2AxlesAuto',                
-            'departure_time' : "2021-01-05T09:46:08Z"   
+            'polyline': polyline_from_mapbox ,               
+            'vehicleType': '2AxlesAuto',                #'''Visit https://tollguru.com/developers/docs/#vehicle-types to know more the options'''
+            'departure_time' : "2021-01-05T09:46:08Z"   #'''Visit https://en.wikipedia.org/wiki/Unix_time to know the time format'''
         }
 
 #Requesting Tollguru with parameters
-response_tollguru= requests.post(Tolls_URL, json=params, headers=headers).json()
+response_tollguru= requests.post(Tolls_URL, json=params, headers=headers,timeout=20).json()
 
-#checking for errors if no printing rates
+#checking for errors or printing rates
 if str(response_tollguru).find('message')==-1:
     print('\n The Rates Are ')
     #extracting rates from Tollguru response is no error
-    print(*response_tollguru['summary']['rates'].items(),end="\n\n")
+    print(*response_tollguru['route']['costs'].items(),end="\n\n")
 else:
     raise Exception(response_tollguru['message'])
     
