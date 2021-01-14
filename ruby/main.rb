@@ -2,9 +2,9 @@ require 'HTTParty'
 require 'json'
 
 # Source Details in latitude-longitude pair
-SOURCE = {longitude: -99.13205, latitude: 19.41510}
+SOURCE = {longitude: '-96.7970', latitude: '32.7767'}
 # Destination Details in latitude-longitude pair
-DESTINATION = {longitude: -98.22568, latitude: 19.08060 }
+DESTINATION = {longitude: '-74.0060', latitude: '40.7128' }
 
 # GET Request to Mapbox for Polyline
 TOKEN = ENV['MAPBOX_KEY']
