@@ -1,14 +1,22 @@
 require 'HTTParty'
 require 'json'
+require 'cgi'
+TOKEN = ENV['MAPBOX_KEY']
 
-# Source Details in latitude-longitude pair
-SOURCE = {longitude: '-96.7970', latitude: '32.7767'}
-# Destination Details in latitude-longitude pair
-DESTINATION = {longitude: '-74.0060', latitude: '40.7128' }
+def get_coord_array(loc)
+    geocoding_url = "https://api.mapbox.com/geocoding/v5/mapbox.places/#{CGI::escape(loc)}.json?limit=1&access_token=#{TOKEN}"
+    coord = JSON.parse(HTTParty.get(geocoding_url).body)
+    return  coord['features'].pop['geometry']['coordinates']
+end
+
+# Source Details - Using Geocoding API
+SOURCE = get_coord_array("Dallas, TX")
+# Destination Details - Using Geocoding API
+DESTINATION = get_coord_array("New York, NY")
 
 # GET Request to Mapbox for Polyline
-TOKEN = ENV['MAPBOX_KEY']
-MAPBOX_URL = "https://api.mapbox.com/directions/v5/mapbox/driving/#{SOURCE[:longitude]},#{SOURCE[:latitude]};#{DESTINATION[:longitude]},#{DESTINATION[:latitude]}?geometries=polyline&access_token=#{TOKEN}&overview=full"
+
+MAPBOX_URL = "https://api.mapbox.com/directions/v5/mapbox/driving/#{SOURCE[0]},#{SOURCE[1]};#{DESTINATION[0]},#{DESTINATION[1]}?geometries=polyline&access_token=#{TOKEN}&overview=full"
 RESPONSE = HTTParty.get(MAPBOX_URL).body
 json_parsed = JSON.parse(RESPONSE)
 

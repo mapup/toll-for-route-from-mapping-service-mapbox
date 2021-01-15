@@ -16,15 +16,24 @@ To get the route polyline make a GET request on https://api.mapbox.com/direction
 * we will be sending `geometries` as `polyline` and `overview` as `full`.
 * Setting overview as full sends us complete route. Default value for `overview` is `simplified`, which is an approximate (smoothed) path of the resulting directions.
 * Mapbox accepts source and destination, as semicolon seperated
-  `[:longitude,:latitude]`.
+  `[:longitude,:latitude]`. We will use geocoding API to convert location to latitude-longitude pair
 
 ```ruby
 require 'HTTParty'
 require 'json'
 
-
 # Token from mapbox
 TOKEN = ENV['MAPBOX_KEY']
+def get_coord_array(loc)
+    geocoding_url = "https://api.mapbox.com/geocoding/v5/mapbox.places/#{CGI::escape(loc)}.json?limit=1&access_token=#{TOKEN}"
+    coord = JSON.parse(HTTParty.get(geocoding_url).body)
+    return  coord['features'].pop['geometry']['coordinates']
+end
+
+# Source Details - Using Geocoding API
+SOURCE = get_coord_array("Dallas, TX")
+# Destination Details - Using Geocoding API
+DESTINATION = get_coord_array("New York, NY")
 
 MAPBOX_URL = "https://api.mapbox.com/directions/v5/mapbox/driving/#{SOURCE[:longitude]},#{SOURCE[:latitude]};#{DESTINATION[:longitude]},#{DESTINATION[:latitude]}?geometries=polyline&access_token=#{TOKEN}&overview=full"
 RESPONSE = HTTParty.get(MAPBOX_URL).body
