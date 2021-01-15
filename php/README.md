@@ -42,7 +42,7 @@ curl_setopt($mapbox, CURLOPT_SSL_VERIFYPEER, false);
 curl_setopt($mapbox, CURLOPT_URL, $url);
 curl_setopt($mapbox, CURLOPT_RETURNTRANSFER, true);
 
-//getting response from googleapis..
+//getting response from mapboxapis..
 $response = curl_exec($mapbox);
 $err = curl_error($mapbox);
 
@@ -56,14 +56,10 @@ if ($err) {
 
 //extracting polyline from the JSON response..
 $data_mapbox = json_decode($response, true);
-//var_dump($data_mapbox);
-$data_new = $data_mapbox['routes'];
-//print_r(array_keys($new_data));
-$new_data = $data_new['0'];
-$pol_data = $new_data['geometry'];
-//echo $pol_data;
+
 //polyline..
-$polyline_mapbox = $pol_data;
+$polyline_mapbox = $data_mapbox['routes']['0']['geometry'];
+
 
 ```
 
@@ -127,9 +123,8 @@ if ($err) {
 }
 
 //response from tollguru..
-var_dump(json_decode($response, true));
-// $data = var_dump(json_decode($response, true));
-//print_r($data);
+$data = var_dump(json_decode($response, true));
+print_r($data);
     
 ```
 
