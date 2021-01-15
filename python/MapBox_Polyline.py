@@ -1,66 +1,76 @@
 #Importing modules
 import json
 import requests
-
-'''Fetching Polyline from Mapbox'''
+import os
 
 #API key for Mapbox
-token=''
-
-#Source and Destination Coordinates
-source_longitude='-96.7970'
-source_latitude='32.7767'
-destination_longitude='-74.0060'
-destination_latitude='40.7128'
-
-#Query Mapbox with Key and Source-Destination coordinates
-url='https://api.mapbox.com/directions/v5/mapbox/driving/{a},{b};{c},{d}?geometries=polyline&access_token={e}&overview=full'.format(a=source_longitude,b=source_latitude,c=destination_longitude,d=destination_latitude,e=token)
-
-#converting the response to json
-response=requests.get(url).json()
-
-#checking for errors in response 
-if str(response).find('message')==-1:
-    pass
-else:
-    raise Exception(response['message'])
-
-#The response is a dict where Polyline is inside first element named "routes" , first element is a list , go to 1st element there
-#you will find a key named "geometry" which is essentially the Polyline''' 
-
-#Extracting polyline
-polyline_from_mapbox=response["routes"][0]['geometry']
-
-
-
-
-'''Calling Tollguru API'''
-
+token=os.environ.get("MAPBOX_PUBLIC_API_KEY")
 #API key for Tollguru
-Tolls_Key = ''
+Tolls_Key = os.environ.get("TOLLGURU_API_KEY")
 
-#Tollguru querry url
-Tolls_URL = 'https://dev.tollguru.com/v1/calc/route'
+'''Fetching geocode from mapbox'''  
+def get_geocode_from_mapbox(address):               
+    address_actual=address
+    address=address.replace(" ", "%20").replace(",","%2C")
+    url=f'https://api.mapbox.com/geocoding/v5/mapbox.places/{address}.json?types=address&access_token={token}'
+    res=requests.get(url).json()
+    try:
+        return(res['features'][0]['geometry']['coordinates'])
+    except:
+        print(f'error in name {address_actual}')
+        return((False,False))
 
-#Tollguru resquest parameters
-headers = {
-            'Content-type': 'application/json',
-            'x-api-key': Tolls_Key
-          }
-params = {
-            'source': "mapbox",
-            'polyline': polyline_from_mapbox ,               
-            'vehicleType': '2AxlesAuto',                #'''TODO - Need to users list of acceptable values for vehicle type'''
-            'departure_time' : "2021-01-05T09:46:08Z"   #'''TODO - Specify time formats'''
-        }
+'''Fetching Polyline from Mapbox'''
+def get_polyline_from_mapbox(source_longitude,source_latitude,destination_longitude,destination_latitude):
+    #Query Mapbox with Key and Source-Destination coordinates
+    url='https://api.mapbox.com/directions/v5/mapbox/driving/{a},{b};{c},{d}?geometries=polyline&access_token={e}&overview=full'.format(a=source_longitude,b=source_latitude,c=destination_longitude,d=destination_latitude,e=token)
+    #converting the response to json
+    response_from_mapbox=requests.get(url,timeout=200).json()
+    #checking for errors in response 
+    if str(response_from_mapbox).find('message')==-1:
+        #Extracting polyline if no error
+        polyline_from_mapbox=response_from_mapbox["routes"][0]['geometry']
+        return(polyline_from_mapbox)
+    else:
+        raise Exception('{}'.format(response_from_mapbox['message']))
+ 
+'''Calling Tollguru API'''
+def get_rates_from_tollguru(polyline,count=0):
+    #API key for Tollguru
+    Tolls_Key = os.environ.get("TOLLGURU_API_KEY")
+    #Tollguru querry url
+    Tolls_URL = 'https://dev.tollguru.com/v1/calc/route'
+    #Tollguru resquest parameters
+    headers = {
+                'Content-type': 'application/json',
+                'x-api-key': Tolls_Key
+                }
+    params = {   
+                # explore https://tollguru.com/developers/docs/ to get best off all the parameter that tollguru offers 
+                'source': "mapbox",
+                'polyline': polyline ,               
+                'vehicleType': '2AxlesAuto',                #'''Visit https://tollguru.com/developers/docs/#vehicle-types to know more options'''
+                'departure_time' : "2021-01-05T09:46:08Z"   #'''Visit https://en.wikipedia.org/wiki/Unix_time to know the time format'''
+                }
+    #Requesting Tollguru with parameters
+    response_tollguru= requests.post(Tolls_URL, json=params, headers=headers,timeout=200).json()
+    #checking for errors or printing rates
+    if str(response_tollguru).find('message')==-1:
+        #return rates in dictionary is not error
+        return(response_tollguru['route']['costs'])
+    else:
+        raise Exception('{} in row {}'.format(response_tollguru['message'],count))
 
-#Requesting Tollguru with parameters
-response_tollguru= requests.post(Tolls_URL, json=params, headers=headers).json()
+'''Program Starts'''
+#Step 1 :provide source and destination location and get geocodes from mapbox for these locations
+source_longitude,source_latitude= get_geocode_from_mapbox('Dallas, TX')
+destination_longitude,destination_latitude=get_geocode_from_mapbox('New York, NY')
 
-#checking for errors or printing rates
-if str(response_tollguru).find('message')==-1:
-    print('\n The Rates Are ')
-    #extracting rates from Tollguru response is no error
-    print(*response_tollguru['summary']['rates'].items(),end="\n\n")
-else:
-    raise Exception(response_tollguru['message'])
+#Step 2 : extract polyline from mapbox 
+polyline_from_mapbox=get_polyline_from_mapbox(source_longitude,source_latitude,destination_longitude,destination_latitude)
+
+#Step 3: get rates from tollguru for that route
+rates_from_tollguru=get_rates_from_tollguru(polyline_from_mapbox)
+
+#prints a dictionary of mode and cost pair
+print(f"The rates are \n {rates_from_tollguru}")   #prints a dictionary of mode and cost pair

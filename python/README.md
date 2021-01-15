@@ -9,10 +9,26 @@
 * You will be presented with a default token.
 * If you want you can create an application specific token.
 
-
-To get the route polyline make a GET request on 'https://api.mapbox.com/directions/v5/mapbox/driving/'source_longitude+','+source_latitude+';'+destination_longitude+','+destination_latitude+'?geometries=polyline&access_token='+token+'&overview=full'
-
-Example of GET request : https://api.mapbox.com/directions/v5/mapbox/driving/-96.7970,32.7767;-74.0060,40.7128?geometries=polyline&access_token=jk.evgggiejdjks2ZWxjbWFwdXAiLCJhIjoiY2tQ&overview=full
+#### Step 3: Getting Geocodes from Mapbox 
+* We will cal Mapbox Geocode API to get geocodes for our source and destination by sending a get request to https://api.mapbox.com/geocoding/v5/mapbox.places/{address}.json?types=address&access_token={token} .
+* This can be done by the following code by providing an address string as parameter which will return longitude-latitude pair if there is no error in response.
+* For example , get_geocode_from_mapbox("Dallas, TX") will return a float [longitude,latitude] list [-98.220024,26.03734] if there is no error in response.
+```python
+def get_geocode_from_mapbox(address):               
+    address_actual=address
+    address=address.replace(" ", "%20").replace(",","%2C")
+    url=f'https://api.mapbox.com/geocoding/v5/mapbox.places/{address}.json?types=address&access_token={token}'
+    res=requests.get(url).json()
+    try:
+        return(res['features'][0]['geometry']['coordinates'])
+    except:
+        print(f'error in name {address_actual}')
+        return((False,False))
+```
+#### Step 4: Getting Polyline from Mapbox
+* Once you have the geocodes of source and destination , you may use function below to get the polyline from mapbox which return a polyline as "string" if there is no error in Mapbox's response.
+* To get the route polyline make a GET request on https://api.mapbox.com/directions/v5/mapbox/driving/{source_longitude},{source_latitude};{destination_longitude},{destination_latitude}?geometries=polyline&access_token={token}&overview=full
+* Example of GET request : https://api.mapbox.com/directions/v5/mapbox/driving/-96.7970,32.7767;-74.0060,40.7128?geometries=polyline&access_token=jk.evgggiejdjks2ZWxjbWFwdXAiLCJhIjoiY2tQ&overview=full
 
 ### Note:
 * We will be sending `geometries` as `polyline` and `overview` as `full`.
@@ -21,45 +37,23 @@ Example of GET request : https://api.mapbox.com/directions/v5/mapbox/driving/-96
   `{longitude},{latitud}`.
 
 ```python
-
-#Importing modules
-import json
-import requests
-
-#API key for Mapbox
-token=''
-
-#Source and Destination Coordinates
-source_longitude='-96.7970'
-source_latitude='32.7767'
-destination_longitude='-74.0060'
-destination_latitude='40.7128'
-
-#Query Mapbox with Key and Source-Destination coordinates
-url='https://api.mapbox.com/directions/v5/mapbox/driving/{a},{b};{c},{d}?geometries=polyline&access_token={e}&overview=full'.format(a=source_longitude,b=source_latitude,c=destination_longitude,d=destination_latitude,e=token)
-
-#converting the response to json
-response=requests.get(url).json()
-
-#checking for errors in response 
-if str(response).find('message')==-1:
-    pass
-else:
-    raise Exception(response['message'])
-
-#The response is a dict where Polyline is inside first element named "routes" , first element is a list , go to 1st element there
-#you will find a key named "geometry" which is essentially the Polyline''' 
-
-#Extracting polyline
-polyline=response["routes"][0]['geometry']
-
+def get_polyline_from_mapbox(source_longitude,source_latitude,destination_longitude,destination_latitude):
+    #Query Mapbox with Key and Source-Destination coordinates
+    url='https://api.mapbox.com/directions/v5/mapbox/driving/{a},{b};{c},{d}?geometries=polyline&access_token={e}&overview=full'.format(a=source_longitude,b=source_latitude,c=destination_longitude,d=destination_latitude,e=token)
+    #converting the response to json
+    response_from_mapbox=requests.get(url,timeout=200).json()
+    #checking for errors in response 
+    if str(response_from_mapbox).find('message')==-1:
+        #Extracting polyline if no error
+        polyline_from_mapbox=response_from_mapbox["routes"][0]['geometry']
+        return(polyline_from_mapbox)
+    else:
+        raise Exception('{}'.format(response_from_mapbox['message']))
 ```
 
-Note:
-
-We extracted the polyline for a route from Mapbox API
-
-We need to send this route polyline to TollGuru API to receive toll information
+#### Step 5: Calling Tollguru API and getting rates 
+* We extracted the polyline for a route from Mapbox API
+* We need to send this route polyline to TollGuru API to receive toll information
 
 ## [TollGuru API](https://tollguru.com/developers/docs/)
 
@@ -70,36 +64,38 @@ We need to send this route polyline to TollGuru API to receive toll information
 
 This snippet can be added at end of the above code to get rates and other details.
 ```python
-
-#API key for Tollguru
-Tolls_Key = ''
-
-#Tollguru API url
-Tolls_URL = 'https://dev.tollguru.com/v1/calc/route'
-
-#Tollguru resquest parameters
-headers = {
-            'Content-type': 'application/json',
-            'x-api-key': Tolls_Key
-          }
-params = {
-            'source': "mapbox",
-            'polyline': polyline ,                      #this is polyline that we fetched from the mapping service      
-            'vehicleType': '2AxlesAuto',                
-            'departure_time' : "2021-01-05T09:46:08Z"   
-        }
-
-#Requesting Tollguru with parameters
-response_tollguru= requests.post(Tolls_URL, json=params, headers=headers).json()
-
-#checking for errors if no printing rates
-if str(response_tollguru).find('message')==-1:
-    print('\n The Rates Are ')
-    #extracting rates from Tollguru response is no error
-    print(*response_tollguru['summary']['rates'].items(),end="\n\n")
-else:
-    raise Exception(response_tollguru['message'])
-    
+def get_rates_from_tollguru(polyline,count=0):
+    #API key for Tollguru
+    Tolls_Key = os.environ.get("TOLLGURU_API_KEY")
+    #Tollguru querry url
+    Tolls_URL = 'https://dev.tollguru.com/v1/calc/route'
+    #Tollguru resquest parameters
+    headers = {
+                'Content-type': 'application/json',
+                'x-api-key': Tolls_Key
+                }
+    params = {   
+                # explore https://tollguru.com/developers/docs/ to get best off all the parameter that tollguru offers 
+                'source': "mapbox",
+                'polyline': polyline ,               
+                'vehicleType': '2AxlesAuto',                #'''Visit https://tollguru.com/developers/docs/#vehicle-types to know more options'''
+                'departure_time' : "2021-01-05T09:46:08Z"   #'''Visit https://en.wikipedia.org/wiki/Unix_time to know the time format'''
+                }
+    #Requesting Tollguru with parameters
+    response_tollguru= requests.post(Tolls_URL, json=params, headers=headers,timeout=200).json()
+    #checking for errors or printing rates
+    if str(response_tollguru).find('message')==-1:
+        #return rates in dictionary is not error
+        return(response_tollguru['route']['costs'])
+    else:
+        raise Exception('{} in row {}'.format(response_tollguru['message'],count))
 ```
 
 Whole working code can be found in MapBox_Polyline.py file.
+
+## License
+ISC License (ISC). Copyright 2020 &copy;TollGuru. https://tollguru.com/
+
+Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
