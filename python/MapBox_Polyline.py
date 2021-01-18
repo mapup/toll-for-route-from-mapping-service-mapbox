@@ -8,7 +8,7 @@ token=os.environ.get("MAPBOX_PUBLIC_API_KEY")
 #API key for Tollguru
 Tolls_Key = os.environ.get("TOLLGURU_API_KEY")
 
-'''Fetching geocode from mapbox'''  
+'''Fetching geocode from Mapbox'''  
 def get_geocode_from_mapbox(address):               
     address_actual=address
     address=address.replace(" ", "%20").replace(",","%2C")
@@ -63,8 +63,8 @@ def get_rates_from_tollguru(polyline,count=0):
 
 '''Program Starts'''
 #Step 1 :provide source and destination location and get geocodes from mapbox for these locations
-source_longitude,source_latitude= get_geocode_from_mapbox('Dallas, TX')
-destination_longitude,destination_latitude=get_geocode_from_mapbox('New York, NY')
+source_longitude,source_latitude= get_geocode_from_mapbox('Caraun More Ireland')
+destination_longitude,destination_latitude=get_geocode_from_mapbox('Johnstown Way Enfield A83Ireland')
 
 #Step 2 : extract polyline from mapbox 
 polyline_from_mapbox=get_polyline_from_mapbox(source_longitude,source_latitude,destination_longitude,destination_latitude)
@@ -72,9 +72,9 @@ polyline_from_mapbox=get_polyline_from_mapbox(source_longitude,source_latitude,d
 #Step 3: get rates from tollguru for that route
 rates_from_tollguru=get_rates_from_tollguru(polyline_from_mapbox)
 
-#prints a dictionary of mode and cost pair
 #Print the rates of all the available modes of payment
 if rates_from_tollguru=={}:
     print("The route doesn't have tolls")
 else:
     print(f"The rates are \n {rates_from_tollguru}")
+'''Program Ends'''
