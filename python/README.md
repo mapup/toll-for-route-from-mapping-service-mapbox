@@ -14,15 +14,21 @@
 * This can be done by the following code by providing an address string as parameter which will return longitude-latitude pair if there is no error in response.
 * For example , get_geocode_from_mapbox("Dallas, TX") will return a float [longitude,latitude] list [-98.220024,26.03734] if there is no error in response.
 ```python
+import json
+import requests
+import os
+
+#API key for Mapbox
+token=os.environ.get("MAPBOX_PUBLIC_API_KEY")
+
 def get_geocode_from_mapbox(address):               
     address_actual=address
     address=address.replace(" ", "%20").replace(",","%2C")
-    url=f'https://api.mapbox.com/geocoding/v5/mapbox.places/{address}.json?types=address&access_token={token}'
+    url=f'https://api.mapbox.com/geocoding/v5/mapbox.places/{address}.json?limit=1&access_token={token}'
     res=requests.get(url).json()
     try:
         return(res['features'][0]['geometry']['coordinates'])
     except:
-        print(f'error in name {address_actual}')
         return((False,False))
 ```
 #### Step 4: Getting Polyline from Mapbox
@@ -37,6 +43,13 @@ def get_geocode_from_mapbox(address):
   `{longitude},{latitud}`.
 
 ```python
+import json
+import requests
+import os
+
+#API key for Mapbox
+token=os.environ.get("MAPBOX_PUBLIC_API_KEY")
+
 def get_polyline_from_mapbox(source_longitude,source_latitude,destination_longitude,destination_latitude):
     #Query Mapbox with Key and Source-Destination coordinates
     url='https://api.mapbox.com/directions/v5/mapbox/driving/{a},{b};{c},{d}?geometries=polyline&access_token={e}&overview=full'.format(a=source_longitude,b=source_latitude,c=destination_longitude,d=destination_latitude,e=token)
@@ -64,9 +77,15 @@ def get_polyline_from_mapbox(source_longitude,source_latitude,destination_longit
 
 This snippet can be added at end of the above code to get rates and other details.
 ```python
-def get_rates_from_tollguru(polyline,count=0):
-    #API key for Tollguru
-    Tolls_Key = os.environ.get("TOLLGURU_API_KEY")
+#Importing modules
+import json
+import requests
+import os
+
+#API key for Tollguru
+Tolls_Key = os.environ.get("TOLLGURU_API_KEY")
+
+def get_rates_from_tollguru(polyline):
     #Tollguru querry url
     Tolls_URL = 'https://dev.tollguru.com/v1/calc/route'
     #Tollguru resquest parameters
@@ -75,7 +94,7 @@ def get_rates_from_tollguru(polyline,count=0):
                 'x-api-key': Tolls_Key
                 }
     params = {   
-                # explore https://tollguru.com/developers/docs/ to get best off all the parameter that tollguru offers 
+                #Explore https://tollguru.com/developers/docs/ to get best off all the parameter that tollguru offers 
                 'source': "mapbox",
                 'polyline': polyline ,               
                 'vehicleType': '2AxlesAuto',                #'''Visit https://tollguru.com/developers/docs/#vehicle-types to know more options'''
@@ -88,7 +107,7 @@ def get_rates_from_tollguru(polyline,count=0):
         #return rates in dictionary is not error
         return(response_tollguru['route']['costs'])
     else:
-        raise Exception('{} in row {}'.format(response_tollguru['message'],count))
+        raise Exception('{}'.format(response_tollguru['message']))
 ```
 
 Whole working code can be found in MapBox_Polyline.py file.
