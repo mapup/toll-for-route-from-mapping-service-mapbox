@@ -67,7 +67,7 @@ def get_rates_from_tollguru(polyline):
 #Importing Functions
 from csv import reader,writer
 temp_list=[]
-with open(r'G:\Shared drives\a_00_Common\00_Personal\Pavel_Chowdhury\Python_For_Spyder\TollGuru_Api\MapBox\python\Testing\testCases.csv','r') as f:
+with open('testCases.csv','r') as f:
     csv_reader=reader(f)
     for count,i in enumerate(csv_reader):
         #if count>2:
@@ -94,7 +94,7 @@ with open(r'G:\Shared drives\a_00_Common\00_Personal\Pavel_Chowdhury\Python_For_
         #print(f"{len(i)}   {i}\n")
         temp_list.append(i)
 
-with open(r'G:\Shared drives\a_00_Common\00_Personal\Pavel_Chowdhury\Python_For_Spyder\TollGuru_Api\MapBox\python\Testing\testCases_re.csv','w') as f:
+with open('testCases_result.csv','w') as f:
     writer(f).writerows(temp_list)
 
 '''Testing Ends'''
