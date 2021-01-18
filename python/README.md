@@ -24,7 +24,7 @@ token=os.environ.get("MAPBOX_PUBLIC_API_KEY")
 def get_geocode_from_mapbox(address):               
     address_actual=address
     address=address.replace(" ", "%20").replace(",","%2C")
-    url=f'https://api.mapbox.com/geocoding/v5/mapbox.places/{address}.json?types=address&access_token={token}'
+    url=f'https://api.mapbox.com/geocoding/v5/mapbox.places/{address}.json?limit=1&access_token={token}'
     res=requests.get(url).json()
     try:
         return(res['features'][0]['geometry']['coordinates'])

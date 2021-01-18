@@ -4,7 +4,7 @@ import requests
 import os
 
 #API key for Mapbox
-token=os.environ.get("MAPBOX_PUBLIC_API_KEY")
+token=os.environ.get("Mapbox_Private_API_Key")
 #API key for Tollguru
 Tolls_Key = os.environ.get("TOLLGURU_API_KEY")
 
@@ -12,8 +12,10 @@ Tolls_Key = os.environ.get("TOLLGURU_API_KEY")
 def get_geocode_from_mapbox(address):               
     address_actual=address
     address=address.replace(" ", "%20").replace(",","%2C")
-    url=f'https://api.mapbox.com/geocoding/v5/mapbox.places/{address}.json?types=address&access_token={token}'
+    url=f'https://api.mapbox.com/geocoding/v5/mapbox.places/{address}.json?limit=1&access_token={token}'
+    #print(url)
     res=requests.get(url).json()
+    #print(res)
     try:
         return(res['features'][0]['geometry']['coordinates'])
     except:
@@ -63,8 +65,8 @@ def get_rates_from_tollguru(polyline,count=0):
 
 '''Program Starts'''
 #Step 1 :provide source and destination location and get geocodes from mapbox for these locations
-source_longitude,source_latitude= get_geocode_from_mapbox('Caraun More Ireland')
-destination_longitude,destination_latitude=get_geocode_from_mapbox('Johnstown Way Enfield A83Ireland')
+source_longitude,source_latitude= get_geocode_from_mapbox('Mumbai, Maharashtra, India')
+destination_longitude,destination_latitude=get_geocode_from_mapbox('Pune, Maharashtra, India')
 
 #Step 2 : extract polyline from mapbox 
 polyline_from_mapbox=get_polyline_from_mapbox(source_longitude,source_latitude,destination_longitude,destination_latitude)

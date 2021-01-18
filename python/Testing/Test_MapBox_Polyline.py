@@ -4,7 +4,7 @@ import requests
 import os
 
 #API key for Mapbox
-token=os.environ.get("MAPBOX_PUBLIC_API_KEY")
+token=os.environ.get("Mapbox_Private_API_Key")
 #API key for Tollguru
 Tolls_Key = os.environ.get("TOLLGURU_API_KEY")
 
@@ -12,11 +12,14 @@ Tolls_Key = os.environ.get("TOLLGURU_API_KEY")
 def get_geocode_from_mapbox(address):               
     address_actual=address
     address=address.replace(" ", "%20").replace(",","%2C")
-    url=f'https://api.mapbox.com/geocoding/v5/mapbox.places/{address}.json?types=address&access_token={token}'
+    url=f'https://api.mapbox.com/geocoding/v5/mapbox.places/{address}.json?limit=1&access_token={token}'
+    #print(url)
     res=requests.get(url).json()
+    #print(res)
     try:
         return(res['features'][0]['geometry']['coordinates'])
     except:
+        print(f'error in name {address_actual}')
         return((False,False))
 
 '''Fetching Polyline from Mapbox'''
@@ -34,7 +37,9 @@ def get_polyline_from_mapbox(source_longitude,source_latitude,destination_longit
         raise Exception('{}'.format(response_from_mapbox['message']))
  
 '''Calling Tollguru API'''
-def get_rates_from_tollguru(polyline):
+def get_rates_from_tollguru(polyline,count=0):
+    #API key for Tollguru
+    Tolls_Key = os.environ.get("TOLLGURU_API_KEY")
     #Tollguru querry url
     Tolls_URL = 'https://dev.tollguru.com/v1/calc/route'
     #Tollguru resquest parameters
@@ -43,7 +48,7 @@ def get_rates_from_tollguru(polyline):
                 'x-api-key': Tolls_Key
                 }
     params = {   
-                #Explore https://tollguru.com/developers/docs/ to get best off all the parameter that tollguru offers 
+                # explore https://tollguru.com/developers/docs/ to get best off all the parameter that tollguru offers 
                 'source': "mapbox",
                 'polyline': polyline ,               
                 'vehicleType': '2AxlesAuto',                #'''Visit https://tollguru.com/developers/docs/#vehicle-types to know more options'''
@@ -56,12 +61,7 @@ def get_rates_from_tollguru(polyline):
         #return rates in dictionary is not error
         return(response_tollguru['route']['costs'])
     else:
-        raise Exception('{}'.format(response_tollguru['message']))
-        return(response_tollguru['message'])
-
-
-
-
+        raise Exception('{} in row {}'.format(response_tollguru['message'],count))
 
 '''Testing'''
 #Importing Functions
@@ -91,9 +91,17 @@ with open('testCases.csv','r') as f:
                 i.append(False)
             time_taken=(time.time()-start)
             if rates=={}:
-                i.append(("NO_TOLL","NO_TOLL"))
+                i.append((None,None))
             else:
-                i.extend((rates['tag'],rates['cash']))
+                try:
+                    tag=rates['tag']
+                except:
+                    tag=None
+                try:
+                    cash=rates['cash']
+                except :
+                    cash=None
+                i.extend((tag,cash))
             i.append(time_taken)
         #print(f"{len(i)}   {i}\n")
         temp_list.append(i)
