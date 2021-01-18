@@ -73,4 +73,8 @@ polyline_from_mapbox=get_polyline_from_mapbox(source_longitude,source_latitude,d
 rates_from_tollguru=get_rates_from_tollguru(polyline_from_mapbox)
 
 #prints a dictionary of mode and cost pair
-print(f"The rates are \n {rates_from_tollguru}")   #prints a dictionary of mode and cost pair
+#Print the rates of all the available modes of payment
+if rates_from_tollguru=={}:
+    print("The route doesn't have tolls")
+else:
+    print(f"The rates are \n {rates_from_tollguru}")
