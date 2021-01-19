@@ -82,7 +82,20 @@ func main() {
 	polyline := result["routes"].([]interface{})[0].(map[string]interface{})["geometry"].(string)
 	fmt.Printf("%v\n\n", polyline)
 
+```
+Note:
 
+We extracted the polyline for a route from Mapbox API
+
+We need to send this route polyline to TollGuru API to receive toll information
+
+## [TollGuru API](https://tollguru.com/developers/docs/)
+
+### Get key to access TollGuru polyline API
+* create a dev account to receive a free key from TollGuru https://tollguru.com/developers/get-api-key
+* suggest adding `vehicleType` parameter. Tolls for cars are different than trucks and therefore if `vehicleType` is not specified, may not receive accurate tolls. For example, tolls are generally higher for trucks than cars. If `vehicleType` is not specified, by default tolls are returned for 2-axle cars. 
+* Similarly, `departure_time` is important for locations where tolls change based on time-of-the-day.
+```
   // Tollguru API
 
 	url_tollguru := "https://dev.tollguru.com/v1/calc/route"
