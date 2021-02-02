@@ -32,10 +32,10 @@ You can specify "departure_time" as DateTime (string) or Timestamp (number) to p
 ### All types of toll systems
 Support for barrier, ticket system and distance based tolling configurations
 
-### [Support for all map services](https://github.com/mapup)
+### Support for [all map services](https://github.com/mapup)
 [See the Mapping services list](https://github.com/mapup/toll-mapbox/wiki/2.-Map-platform-service-supported-by-TollGuru) for all mapping platforms supported. You can edit the **source** argument to send polyline from another mapping service.
 
-### [Truck parameters supported by TollGuru](https://github.com/mapup/toll-mapbox/wiki/4.-Truck-parameters-supported-by-TollGuru)
+### Support for trucks based on [height, weight, harardous goods, etc.](https://github.com/mapup/toll-mapbox/wiki/4.-Truck-parameters-supported-by-TollGuru)
 You can receive tolls based on vehicle height, weight etc., while calculating toll: "truckType","shippedHazardousGoods","tunnelCategory","truckRestrictionPenalty" and [more](https://github.com/mapup/toll-mapbox/wiki/4.-Truck-parameters-supported-by-TollGuru).
 
 
