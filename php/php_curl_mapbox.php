@@ -1,14 +1,23 @@
 <?php
 //using mapbox API
 
-//Source and Destination Coordinates..
-$source_longitude='-96.79448';
-$source_latitude='32.78165';
-$destination_longitude='-96.818';
-$destination_latitude='32.95399';
-$key = 'mapbox.token';
+$MAPBOX_API_KEY = getenv('MAPBOX_API_KEY');
+$MAPBOX_API_URL = "https://api.mapbox.com/directions/v5/mapbox/driving";
 
-$url='https://api.mapbox.com/directions/v5/mapbox/driving/'.$source_longitude.','.$source_latitude.';'.$destination_longitude.','.$destination_latitude.'?geometries=polyline&access_token='.$key.'&overview=full';
+$TOLLGURU_API_KEY = getenv('TOLLGURU_API_KEY');
+$TOLLGURU_API_URL = "https://apis.tollguru.com/toll/v2";
+$POLYLINE_ENDPOINT = "complete-polyline-from-mapping-service";
+
+// Dallas, TX
+$source_longitude = '-96.7970';
+$source_latitude = '32.7767';
+
+// New York, NY
+$destination_longitude = '-74.0060';
+$destination_latitude = '40.7128';
+
+
+$url=$MAPBOX_API_URL.'/'.$source_longitude.','.$source_latitude.';'.$destination_longitude.','.$destination_latitude.'?geometries=polyline&access_token='.$MAPBOX_API_KEY.'&overview=full';
 
 //connection..
 $mapbox = curl_init();
@@ -46,7 +55,7 @@ curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
 
 
 $postdata = array(
-	"source" => "gmaps",
+	"source" => "mapbox",
 	"polyline" => $polyline_mapbox
 );
 
@@ -54,20 +63,20 @@ $postdata = array(
 $encode_postData = json_encode($postdata);
 
 curl_setopt_array($curl, array(
-CURLOPT_URL => "https://dev.tollguru.com/v1/calc/route",
-CURLOPT_RETURNTRANSFER => true,
-CURLOPT_ENCODING => "",
-CURLOPT_MAXREDIRS => 10,
-CURLOPT_TIMEOUT => 30,
-CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-CURLOPT_CUSTOMREQUEST => "POST",
+  CURLOPT_URL => $TOLLGURU_API_URL."/".$POLYLINE_ENDPOINT,
+  CURLOPT_RETURNTRANSFER => true,
+  CURLOPT_ENCODING => "",
+  CURLOPT_MAXREDIRS => 10,
+  CURLOPT_TIMEOUT => 30,
+  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+  CURLOPT_CUSTOMREQUEST => "POST",
 
 
-//sending mapbox polyline to tollguru
-CURLOPT_POSTFIELDS => $encode_postData,
-CURLOPT_HTTPHEADER => array(
-				      "content-type: application/json",
-				      "x-api-key: tollguru.api"),
+  //sending mapbox polyline to tollguru
+  CURLOPT_POSTFIELDS => $encode_postData,
+  CURLOPT_HTTPHEADER => array(
+    "content-type: application/json",
+    "x-api-key: ".$TOLLGURU_API_KEY),
 ));
 
 $response = curl_exec($curl);

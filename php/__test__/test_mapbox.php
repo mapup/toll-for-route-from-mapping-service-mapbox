@@ -1,11 +1,18 @@
 <?php
 //using mapbox API
 
+$MAPBOX_API_KEY = getenv('MAPBOX_API_KEY');
+$MAPBOX_API_URL = "https://api.mapbox.com/directions/v5/mapbox/driving";
+
+$TOLLGURU_API_KEY = getenv('TOLLGURU_API_KEY');
+$TOLLGURU_API_URL = "https://apis.tollguru.com/toll/v2";
+$POLYLINE_ENDPOINT = "complete-polyline-from-mapping-service";
+
 //Source and Destination Coordinates..
 function getPolyline($source_longitude,$source_latitude,$destination_longitude,$destination_latitude){
-$key = 'mapbox_api_key';
+global $MAPBOX_API_KEY, $MAPBOX_API_URL;
 
-$url='https://api.mapbox.com/directions/v5/mapbox/driving/'.$source_longitude.','.$source_latitude.';'.$destination_longitude.','.$destination_latitude.'?geometries=polyline&access_token='.$key.'&overview=full';
+$url=$MAPBOX_API_URL."/".$source_longitude.','.$source_latitude.';'.$destination_longitude.','.$destination_latitude.'?geometries=polyline&access_token='.$MAPBOX_API_KEY.'&overview=full';
 
 //connection..
 $mapbox = curl_init();
@@ -66,20 +73,20 @@ $postdata = array(
 $encode_postData = json_encode($postdata);
 
 curl_setopt_array($curl, array(
-CURLOPT_URL => "https://dev.tollguru.com/v1/calc/route",
-CURLOPT_RETURNTRANSFER => true,
-CURLOPT_ENCODING => "",
-CURLOPT_MAXREDIRS => 10,
-CURLOPT_TIMEOUT => 30,
-CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-CURLOPT_CUSTOMREQUEST => "POST",
+  CURLOPT_URL => $TOLLGURU_API_URL."/".$POLYLINE_ENDPOINT,
+  CURLOPT_RETURNTRANSFER => true,
+  CURLOPT_ENCODING => "",
+  CURLOPT_MAXREDIRS => 10,
+  CURLOPT_TIMEOUT => 30,
+  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+  CURLOPT_CUSTOMREQUEST => "POST",
 
 
-//sending mapbox polyline to tollguru
-CURLOPT_POSTFIELDS => $encode_postData,
-CURLOPT_HTTPHEADER => array(
-				      "content-type: application/json",
-				      "x-api-key: tollguru_api_key"),
+  //sending mapbox polyline to tollguru
+  CURLOPT_POSTFIELDS => $encode_postData,
+  CURLOPT_HTTPHEADER => array(
+    "content-type: application/json",
+    "x-api-key: ".$TOLLGURU_API_KEY),
 ));
 
 $response = curl_exec($curl);

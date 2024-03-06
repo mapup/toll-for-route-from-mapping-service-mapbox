@@ -1,22 +1,16 @@
 const request = require("request");
 
-// Token from mapbox
-const token = process.env.MAPBOX_TOKEN;
-const tollguruKey = process.env.TOLLGURU_KEY;
+const MAPBOX_API_KEY = process.env.MAPBOX_API_KEY
+const MAPBOX_API_URL = "https://api.mapbox.com/directions/v5/mapbox/driving";
 
-// Dallas, TX
-const source = {
-    longitude: '-96.7970',
-    latitude: '32.7767',
-}
+const TOLLGURU_API_KEY = process.env.TOLLGURU_API_KEY
+const TOLLGURU_API_URL = "https://apis.tollguru.com/toll/v2";
+const POLYLINE_ENDPOINT = "complete-polyline-from-mapping-service";
 
-// New York, NY
-const destination = {
-    longitude: '-74.0060',
-    latitude: '40.7128'
-};
+const source = { longitude: '-96.7970', latitude: '32.7767' } // Dallas, TX
+const destination = { longitude: '-74.0060', latitude: '40.7128' }; // New York, NY
 
-const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${source.longitude},${source.latitude};${destination.longitude},${destination.latitude}?geometries=polyline&access_token=${token}&overview=full`
+const url = `${MAPBOX_API_URL}/${source.longitude},${source.latitude};${destination.longitude},${destination.latitude}?geometries=polyline&access_token=${MAPBOX_API_KEY}&overview=full`
 
 const head = arr => arr[0];
 // JSON path "$..geometry"
@@ -28,9 +22,9 @@ const getRoute = (cb) => request.get(url, cb);
 //const handleRoute = (e, r, body) => console.log(getPolyline(body));
 //getRoute(handleRoute);
 
-const tollguruUrl = 'https://dev.tollguru.com/v1/calc/route';
+const tollguruUrl = `${TOLLGURU_API_URL}/${POLYLINE_ENDPOINT}`;
 
-const handleRoute = (e, r, body) =>  {
+const handleRoute = (e, r, body) => {
   console.log(body)
   const _polyline = getPolyline(body);
   request.post(
@@ -38,7 +32,7 @@ const handleRoute = (e, r, body) =>  {
       url: tollguruUrl,
       headers: {
         'content-type': 'application/json',
-        'x-api-key': tollguruKey
+        'x-api-key': TOLLGURU_API_KEY
       },
       body: JSON.stringify({
         source: "mapbox",
