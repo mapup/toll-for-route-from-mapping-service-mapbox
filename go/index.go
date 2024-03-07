@@ -12,27 +12,35 @@ import (
 )
 
 var (
-	MAPBOX_API_KEY   string = os.Getenv("MAPBOX_API_KEY")
-	TOLLGURU_API_KEY string = os.Getenv("TOLLGURU_API_KEY")
+	MAPBOX_API_KEY     string = os.Getenv("MAPBOX_API_KEY")
+	TOLLGURU_API_KEY   string = os.Getenv("TOLLGURU_API_KEY")
 )
 
 const (
-	MAPBOX_API_URL         = "https://api.mapbox.com/directions/v5/mapbox/driving"
-	MAPBOX_GEOCODE_API_URL = "https://api.mapbox.com/geocoding/v5/mapbox.places"
+	MAPBOX_API_URL            = "https://api.mapbox.com/directions/v5/mapbox/driving"
+	MAPBOX_GEOCODE_API_URL    = "https://api.mapbox.com/geocoding/v5/mapbox.places"
+	TOLLGURU_API_URL  		  = "https://apis.tollguru.com/toll/v2"
+	POLYLINE_ENDPOINT 		  = "complete-polyline-from-mapping-service"
 
-	TOLLGURU_API_URL  = "https://apis.tollguru.com/toll/v2"
-	POLYLINE_ENDPOINT = "complete-polyline-from-mapping-service"
-
-	source      string = "Dallas, TX"
+	source      string = "Philadelphia, PA"
 	destination string = "New York, NY"
 )
+
+// Explore https://tollguru.com/toll-api-docs to get the best of all the parameters that tollguru has to offer
+var requestParams = map[string]interface{}{
+	"vehicle": map[string]interface{}{
+		"type": "2AxlesAuto",
+	},
+	// Visit https://en.wikipedia.org/wiki/Unix_time to know the time format
+	"departure_time": "2021-01-05T09:46:08Z",
+}
 
 func main() {
 	url := fmt.Sprintf("%s/%s.json?access_token=%s", MAPBOX_GEOCODE_API_URL, source, MAPBOX_API_KEY)
 	spaceClient := http.Client{
 		Timeout: time.Second * 200, // Timeout after 200 seconds
 	}
-	//fmt.Println(records)
+	// fmt.Println(records)
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		log.Fatal(err)
@@ -65,7 +73,7 @@ func main() {
 
 	url_add := fmt.Sprintf("%s/%s.json?access_token=%s", MAPBOX_GEOCODE_API_URL, destination, MAPBOX_API_KEY)
 
-	//fmt.Println(records)
+	// fmt.Println(records)
 	req_add, err := http.NewRequest(http.MethodGet, url_add, nil)
 	if err != nil {
 		log.Fatal(err)
@@ -131,15 +139,18 @@ func main() {
 	polyline := result_mapbox["routes"].([]interface{})[0].(map[string]interface{})["geometry"].(string)
 
 	// Tollguru API request
-
 	url_tollguru := fmt.Sprintf("%s/%s", TOLLGURU_API_URL, POLYLINE_ENDPOINT)
 
-	requestBody, err := json.Marshal(map[string]string{
-		"source":         "mapbox",
-		"polyline":       polyline,
-		"vehicleType":    "2AxlesAuto",
-		"departure_time": "2021-01-05T09:46:08Z",
-	})
+	params := map[string]interface{}{
+		"source":   "mapbox",
+		"polyline": polyline,
+	}
+
+	for k, v := range requestParams {
+		params[k] = v
+	}
+
+	requestBody, err := json.Marshal(params)
 
 	request, err := http.NewRequest("POST", url_tollguru, bytes.NewBuffer(requestBody))
 	request.Header.Set("x-api-key", TOLLGURU_API_KEY)
