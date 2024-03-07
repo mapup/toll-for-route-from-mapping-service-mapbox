@@ -11,12 +11,11 @@ TOLLGURU_API_KEY = os.environ.get("TOLLGURU_API_KEY")
 TOLLGURU_API_URL = "https://apis.tollguru.com/toll/v2"
 POLYLINE_ENDPOINT = "complete-polyline-from-mapping-service"
 
-source = "Dallas, TX"
+source = "Philadelphia, PA"
 destination = "New York, NY"
+vehicleType = "2AxlesAuto"
 
 """Fetching geocode from Mapbox"""
-
-
 def get_geocode_from_mapbox(address):
     address_actual = address
     address = address.replace(" ", "%20").replace(",", "%2C")
@@ -30,10 +29,7 @@ def get_geocode_from_mapbox(address):
         print(f"error in name {address_actual}")
         return (False, False)
 
-
 """Fetching Polyline from Mapbox"""
-
-
 def get_polyline_from_mapbox(
     source_longitude, source_latitude, destination_longitude, destination_latitude
 ):
@@ -58,10 +54,7 @@ def get_polyline_from_mapbox(
     else:
         raise Exception("{}".format(response_from_mapbox["message"]))
 
-
 """Calling Tollguru API"""
-
-
 def get_rates_from_tollguru(polyline, count=0):
     # Tollguru querry url
     Tolls_URL = f"{TOLLGURU_API_URL}/{POLYLINE_ENDPOINT}"
@@ -71,7 +64,9 @@ def get_rates_from_tollguru(polyline, count=0):
         # explore https://tollguru.com/developers/docs/ to get best off all the parameter that tollguru offers
         "source": "mapbox",
         "polyline": polyline,
-        "vehicleType": "2AxlesAuto",  #'''Visit https://tollguru.com/developers/docs/#vehicle-types to know more options'''
+        "vehicle": {
+            type: vehicleType,
+        },  #'''Visit https://tollguru.com/developers/docs/#vehicle-types to know more options'''
         "departure_time": "2021-01-05T09:46:08Z",  #'''Visit https://en.wikipedia.org/wiki/Unix_time to know the time format'''
     }
     # Requesting Tollguru with parameters
