@@ -13,9 +13,17 @@ POLYLINE_ENDPOINT = "complete-polyline-from-mapping-service"
 
 source = "Philadelphia, PA"
 destination = "New York, NY"
-vehicleType = "2AxlesAuto"
 
-"""Fetching geocode from Mapbox"""
+# Explore https://tollguru.com/toll-api-docs to get best of all the parameter that TollGuru has to offer
+request_parameters = {
+    "vehicle": {
+        "type": "2AxlesAuto"
+    },
+    # Visit https://en.wikipedia.org/wiki/Unix_time to know the time format
+    "departure_time": "2021-01-05T09:46:08Z",
+}
+
+# Fetching geocode from MapBox
 def get_geocode_from_mapbox(address):
     address_actual = address
     address = address.replace(" ", "%20").replace(",", "%2C")
@@ -29,11 +37,11 @@ def get_geocode_from_mapbox(address):
         print(f"error in name {address_actual}")
         return (False, False)
 
-"""Fetching Polyline from Mapbox"""
+# Fetching Polyline from MapBox
 def get_polyline_from_mapbox(
     source_longitude, source_latitude, destination_longitude, destination_latitude
 ):
-    # Query Mapbox with Key and Source-Destination coordinates
+    # Query MapBox with Key and Source-Destination coordinates
     url = (
         "{a}/{b},{c};{d},{e}?geometries=polyline&access_token={f}&overview=full".format(
             a=MAPBOX_API_URL,
@@ -44,9 +52,9 @@ def get_polyline_from_mapbox(
             f=MAPBOX_API_KEY,
         )
     )
-    # converting the response to json
+    # Converting the response to JSON
     response_from_mapbox = requests.get(url, timeout=200).json()
-    # checking for errors in response
+    # Checking for errors in response
     if str(response_from_mapbox).find("message") == -1:
         # Extracting polyline if no error
         polyline_from_mapbox = response_from_mapbox["routes"][0]["geometry"]
@@ -54,22 +62,20 @@ def get_polyline_from_mapbox(
     else:
         raise Exception("{}".format(response_from_mapbox["message"]))
 
-"""Calling Tollguru API"""
+# Calling TollGuru API
 def get_rates_from_tollguru(polyline, count=0):
-    # Tollguru querry url
+    # TollGuru Query URL
     Tolls_URL = f"{TOLLGURU_API_URL}/{POLYLINE_ENDPOINT}"
-    # Tollguru resquest parameters
+
+    # TollGuru resquest parameters
     headers = {"Content-type": "application/json", "x-api-key": TOLLGURU_API_KEY}
     params = {
-        # explore https://tollguru.com/developers/docs/ to get best off all the parameter that tollguru offers
+        # Explore https://tollguru.com/developers/docs/ to get best off all the parameter that tollguru offers
         "source": "mapbox",
         "polyline": polyline,
-        "vehicle": {
-            type: vehicleType,
-        },  #'''Visit https://tollguru.com/developers/docs/#vehicle-types to know more options'''
-        "departure_time": "2021-01-05T09:46:08Z",  #'''Visit https://en.wikipedia.org/wiki/Unix_time to know the time format'''
+        **request_parameters,
     }
-    # Requesting Tollguru with parameters
+    # Requesting TollGuru with parameters
     response_tollguru = requests.post(
         Tolls_URL, json=params, headers=headers, timeout=200
     ).json()
@@ -80,18 +86,17 @@ def get_rates_from_tollguru(polyline, count=0):
     else:
         raise Exception("{} in row {}".format(response_tollguru["message"], count))
 
-
-"""Program Starts"""
-# Step 1 :provide source and destination location and get geocodes from mapbox for these locations
+# Program Starts
+# Step 1: provide source and destination location and get geocodes from mapbox for these locations
 source_longitude, source_latitude = get_geocode_from_mapbox(source)
 destination_longitude, destination_latitude = get_geocode_from_mapbox(destination)
 
-# Step 2 : extract polyline from mapbox
+# Step 2: extract polyline from mapbox
 polyline_from_mapbox = get_polyline_from_mapbox(
     source_longitude, source_latitude, destination_longitude, destination_latitude
 )
 
-# Step 3: get rates from tollguru for that route
+# Step 3: get rates from TolLGuru for that route
 rates_from_tollguru = get_rates_from_tollguru(polyline_from_mapbox)
 
 # Print the rates of all the available modes of payment
@@ -99,4 +104,4 @@ if rates_from_tollguru == {}:
     print("The route doesn't have tolls")
 else:
     print(f"The rates are \n {rates_from_tollguru}")
-"""Program Ends"""
+# Program Ends
